@@ -1,0 +1,47 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.9;
+
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract GGG is ERC1155, Ownable {
+    uint256 public constant NFT_PRICE = 100000000000000000; // 0.1 ETH price
+    string public constant name = "Kuanysh ERC1155";
+    mapping(address => bool) public whitelist;
+
+    constructor(string memory _uri) ERC1155("https://nftstorage.link/ipfs/bafkreids2vpblvtd4psmqq5mwbgwlvlkiczkaxxofzjviuh2vmcvddtsvu") {
+    }
+
+    function addWhitelist(address[] memory _addresses) public onlyOwner {
+        for (uint256 i = 0; i < _addresses.length; i++) {
+            whitelist[_addresses[i]] = true;
+        }
+    }
+
+    function removeWhitelist(address[] memory _addresses) public onlyOwner {
+        for (uint256 i = 0; i < _addresses.length; i++) {
+            whitelist[_addresses[i]] = false;
+        }
+    }
+
+    function buyNft(uint256 _tokenId, uint _number) public payable {
+        require(whitelist[msg.sender], "You are not in the White list");
+        require(msg.value >= NFT_PRICE, "You do not have enough ETH on your account");
+        uint256 excess = msg.value - NFT_PRICE;
+        if (excess > 0) {
+            payable(msg.sender).transfer(excess);
+        }
+
+        _mint(msg.sender, _tokenId, _number, "");
+    }
+
+    function mint( address _to, uint256 _tokenId, uint256 _number) public onlyOwner {
+        _mint(_to, _tokenId, _number, "");
+    }
+
+    function mintBatch( address _to, uint256[] memory _tokenIds, uint256[] memory _numbers) public onlyOwner {
+        _mintBatch(_to, _tokenIds, _numbers, "");
+    }
+
+}
